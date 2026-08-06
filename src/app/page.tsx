@@ -4,11 +4,13 @@ import { useState, useEffect, useCallback } from 'react';
 import DateHeader from '@/components/DateHeader';
 import DailySummaryCard from '@/components/DailySummaryCard';
 import DailyRecordForm from '@/components/DailyRecordForm';
+import SplashLanding from '@/components/SplashLanding';
 import { DailyLog, ExerciseCategory } from '@/lib/types';
 import { getTodayString } from '@/lib/dateUtils';
 import { Loader2 } from 'lucide-react';
 
 export default function HomePage() {
+  const [showSplash, setShowSplash] = useState<boolean>(true);
   const [currentDate, setCurrentDate] = useState<string>(getTodayString());
   const [dailyLog, setDailyLog] = useState<DailyLog | null>(null);
   const [categories, setCategories] = useState<ExerciseCategory[]>([]);
@@ -66,7 +68,12 @@ export default function HomePage() {
   const hasRecordData = dailyLog && ((dailyLog.weight !== null && dailyLog.weight !== undefined) || (dailyLog.records && dailyLog.records.length > 0));
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen relative">
+      {/* 1초 스플래시 랜딩 연동 */}
+      {showSplash && (
+        <SplashLanding onComplete={() => setShowSplash(false)} />
+      )}
+
       {/* 날짜 헤더 */}
       <DateHeader currentDate={currentDate} onDateChange={handleDateChange} />
 

@@ -39,3 +39,12 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+@keyframes progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
