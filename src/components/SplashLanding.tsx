@@ -46,7 +46,7 @@ export default function SplashLanding({ onComplete }: SplashLandingProps) {
       setFadeOut(true);
       setTimeout(() => {
         onComplete();
-      }, 300); // 300ms 페이드아웃
+      }, 300);
     }, 2000);
 
     return () => clearTimeout(timer);
@@ -57,19 +57,19 @@ export default function SplashLanding({ onComplete }: SplashLandingProps) {
 
   return (
     <div
-      className={`fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-between p-6 transition-opacity duration-300 ${
+      className={`fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-between p-5 transition-opacity duration-300 ${
         fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
-      {/* 상단 프로그레스 바 (2초 진행 표시) */}
-      <div className="w-full max-w-xs bg-slate-800 h-1.5 rounded-full overflow-hidden mt-4 border border-slate-700/50">
+      {/* 갤럭시 S10 상단 프로그레스 바 (2초 진행 표시) */}
+      <div className="w-full max-w-[340px] bg-slate-800 h-1.5 rounded-full overflow-hidden mt-2 border border-slate-700/50">
         <div className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 h-full w-full animate-[progress_2s_linear_forwards] origin-left"></div>
       </div>
 
       {/* 히어로 비주얼 이미지 영역 */}
-      <div className="w-full max-w-sm flex-1 flex flex-col items-center justify-center my-4 space-y-5 text-center">
-        {/* 이미지 프레임 (랜덤 20종) */}
-        <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border border-slate-700/60 group">
+      <div className="w-full max-w-[340px] flex-1 flex flex-col items-center justify-center my-3 space-y-4 text-center">
+        {/* 이미지 프레임 (갤럭시 S10 뷰포트 비율) */}
+        <div className="relative w-full aspect-[4/3] max-h-[220px] rounded-2xl overflow-hidden shadow-2xl border border-slate-700/60 group">
           <Image
             src={imageSrc}
             alt="Fitness Workout Visual"
@@ -79,26 +79,26 @@ export default function SplashLanding({ onComplete }: SplashLandingProps) {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
           
-          <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2 bg-slate-900/85 backdrop-blur-md border border-slate-700/60 p-2.5 rounded-2xl">
-            <Zap className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span className="text-[11px] font-bold text-slate-200 text-left leading-tight">
+          <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center gap-1.5 bg-slate-900/85 backdrop-blur-md border border-slate-700/60 p-2 rounded-xl">
+            <Zap className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span className="text-[10px] font-bold text-slate-200 text-left leading-tight">
               매일의 작은 기록이 건강한 내일을 만듭니다
             </span>
           </div>
         </div>
 
         {/* 타이틀 및 기대효과 메시지 */}
-        <div className="space-y-2 px-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-950/80 border border-emerald-800/60 rounded-full text-emerald-400 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>오늘의 운동 기대 효과 #{randomIndex + 1}</span>
+        <div className="space-y-1.5 px-1">
+          <div className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-950/80 border border-emerald-800/60 rounded-full text-emerald-400 text-[11px] font-semibold">
+            <Sparkles className="w-3 h-3" />
+            <span>운동 기대 효과 #{randomIndex + 1}</span>
           </div>
 
-          <h1 className="text-xl sm:text-2xl font-black text-slate-100 tracking-tight leading-snug">
+          <h1 className="text-lg font-black text-slate-100 tracking-tight leading-snug">
             {motivation.title}
           </h1>
 
-          <p className="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">
+          <p className="text-[11px] text-slate-400 leading-relaxed max-w-[300px] mx-auto">
             {motivation.subtitle}
           </p>
         </div>
@@ -107,10 +107,10 @@ export default function SplashLanding({ onComplete }: SplashLandingProps) {
       {/* 하단 스킵 버튼 */}
       <button
         onClick={onComplete}
-        className="w-full max-w-xs py-3.5 bg-slate-900 hover:bg-slate-800 active:scale-95 border border-slate-800 rounded-2xl text-slate-300 font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-lg"
+        className="w-full max-w-[340px] py-3 bg-slate-900 hover:bg-slate-800 active:scale-95 border border-slate-800 rounded-xl text-slate-300 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all shadow-lg mb-1"
       >
         <span>즉시 기록하러 가기</span>
-        <ArrowRight className="w-4 h-4 text-emerald-400" />
+        <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
       </button>
     </div>
   );
