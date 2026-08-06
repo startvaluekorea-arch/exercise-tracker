@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { Sparkles, ArrowRight, Zap } from 'lucide-react';
 
@@ -34,14 +34,14 @@ const FITNESS_MOTIVATIONS = [
 
 export default function SplashLanding({ onComplete }: SplashLandingProps) {
   const [fadeOut, setFadeOut] = useState(false);
-  const [randomIndex, setRandomIndex] = useState(0);
+
+  // 웹(페이지)이 로딩될 때 딱 1개의 랜덤 인덱스를 절대 변하지 않도록 최초 고정
+  const randomIndex = useMemo(() => {
+    return Math.floor(Math.random() * 20);
+  }, []);
 
   useEffect(() => {
-    // 1 ~ 20 중 랜덤 인덱스 선택
-    const randomNum = Math.floor(Math.random() * 20);
-    setRandomIndex(randomNum);
-
-    // 2초 (2000ms) 후 페이드 아웃 시작 후 메인 페이지로 자동 전환
+    // 2초(2000ms) 동안 고정된 1개의 이미지 노출 후 300ms 페이드아웃 전환
     const timer = setTimeout(() => {
       setFadeOut(true);
       setTimeout(() => {
@@ -61,20 +61,20 @@ export default function SplashLanding({ onComplete }: SplashLandingProps) {
         fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
-      {/* 갤럭시 S10 상단 프로그레스 바 (2초 진행 표시) */}
+      {/* 상단 프로그레스 바 (2초 진행 표시) */}
       <div className="w-full max-w-[340px] bg-slate-800 h-1.5 rounded-full overflow-hidden mt-2 border border-slate-700/50">
         <div className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 h-full w-full animate-[progress_2s_linear_forwards] origin-left"></div>
       </div>
 
-      {/* 히어로 비주얼 이미지 영역 */}
+      {/* 접속 당 단 1개만 고정 표시되는 이미지 & 동기부여 문구 */}
       <div className="w-full max-w-[340px] flex-1 flex flex-col items-center justify-center my-3 space-y-4 text-center">
-        {/* 이미지 프레임 (갤럭시 S10 뷰포트 비율) */}
-        <div className="relative w-full aspect-[4/3] max-h-[220px] rounded-2xl overflow-hidden shadow-2xl border border-slate-700/60 group">
+        {/* 고정 이미지 프레임 */}
+        <div className="relative w-full aspect-[4/3] max-h-[220px] rounded-2xl overflow-hidden shadow-2xl border border-slate-700/60">
           <Image
             src={imageSrc}
             alt="Fitness Workout Visual"
             fill
-            className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
+            className="object-cover object-center"
             priority
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
@@ -87,11 +87,11 @@ export default function SplashLanding({ onComplete }: SplashLandingProps) {
           </div>
         </div>
 
-        {/* 타이틀 및 기대효과 메시지 */}
+        {/* 선택된 단 1개의 고정 타이틀 및 메시지 */}
         <div className="space-y-1.5 px-1">
           <div className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-950/80 border border-emerald-800/60 rounded-full text-emerald-400 text-[11px] font-semibold">
             <Sparkles className="w-3 h-3" />
-            <span>운동 기대 효과 #{randomIndex + 1}</span>
+            <span>오늘의 운동 기대 효과</span>
           </div>
 
           <h1 className="text-lg font-black text-slate-100 tracking-tight leading-snug">
