@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DailyLog, ExerciseCategory, ExerciseRecord, SetData } from '@/lib/types';
-import { Scale, Dumbbell, Plus, Trash2, FileText, CheckCircle2 } from 'lucide-react';
+import { Scale, Dumbbell, Plus, Trash2, FileText, CheckCircle2, Globe, Lock } from 'lucide-react';
 
 interface DailyRecordFormProps {
   date: string;
@@ -23,6 +23,7 @@ export default function DailyRecordForm({
     initialLog?.weight ? String(initialLog.weight) : ''
   );
   const [memo, setMemo] = useState<string>(initialLog?.memo || '');
+  const [isPublic, setIsPublic] = useState<boolean>(initialLog?.is_public ?? false);
   const [recordsMap, setRecordsMap] = useState<{ [categoryId: string]: ExerciseRecord }>({});
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
@@ -39,7 +40,7 @@ export default function DailyRecordForm({
           category_id: cat.id,
           category_name: cat.name,
           unit_type: cat.unit_type,
-          sets_data: cat.unit_type === 'SET_REPS' ? [] : [],
+          sets_data: [],
           total_reps: 0,
           distance_km: 0,
           duration_seconds: 0,
@@ -48,6 +49,9 @@ export default function DailyRecordForm({
     });
 
     setRecordsMap(initialMap);
+    if (initialLog) {
+      setIsPublic(initialLog.is_public ?? false);
+    }
   }, [categories, initialLog]);
 
   const handleAddSet = (catId: string) => {
@@ -95,23 +99,26 @@ export default function DailyRecordForm({
     setRecordsMap((prev) => {
       const target = prev[catId];
       if (!target) return prev;
-      const updatedSets = (target.sets_data || [])
-        .filter((_, idx) => idx !== setIndex)
-        .map((s, idx) => ({ ...s, set: idx + 1 }));
-      const totalReps = updatedSets.reduce((sum, s) => sum + (s.reps || 0), 0);
+      const filteredSets = (target.sets_data || []).filter((_, idx) => idx !== setIndex);
+      const renumberedSets = filteredSets.map((s, idx) => ({ ...s, set: idx + 1 }));
+      const totalReps = renumberedSets.reduce((sum, s) => sum + (s.reps || 0), 0);
 
       return {
         ...prev,
         [catId]: {
           ...target,
-          sets_data: updatedSets,
+          sets_data: renumberedSets,
           total_reps: totalReps,
         },
       };
     });
   };
 
-  const handleRecordFieldChange = (catId: string, field: 'distance_km' | 'duration_seconds', val: number) => {
+  const handleRecordFieldChange = (
+    catId: string,
+    field: 'total_reps' | 'distance_km' | 'duration_seconds',
+    val: number
+  ) => {
     setRecordsMap((prev) => {
       const target = prev[catId];
       if (!target) return prev;
@@ -130,18 +137,20 @@ export default function DailyRecordForm({
     setIsSaving(true);
 
     try {
-      const validRecords = Object.values(recordsMap).filter((r) => {
-        if (r.unit_type === 'SET_REPS') return r.sets_data && r.sets_data.length > 0;
-        if (r.unit_type === 'DISTANCE_TIME') return r.distance_km > 0 || r.duration_seconds > 0;
-        if (r.unit_type === 'DURATION') return r.duration_seconds > 0;
-        return r.total_reps > 0;
+      const recordsToSave = Object.values(recordsMap).filter((r) => {
+        if (r.sets_data && r.sets_data.length > 0) return true;
+        if (r.total_reps > 0) return true;
+        if (r.distance_km > 0) return true;
+        if (r.duration_seconds > 0) return true;
+        return false;
       });
 
       const payload = {
         date,
         weight: weight ? parseFloat(weight) : null,
         memo,
-        records: validRecords,
+        is_public: isPublic,
+        records: recordsToSave,
       };
 
       const res = await fetch('/api/logs', {
@@ -150,11 +159,15 @@ export default function DailyRecordForm({
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error('저장 실패');
-      const savedLog = await res.json();
-      onSaveSuccess(savedLog);
+      if (res.ok) {
+        const savedLog = await res.json();
+        onSaveSuccess(savedLog);
+      } else {
+        alert('저장에 실패했습니다.');
+      }
     } catch (err) {
-      alert('기록 저장 중 오류가 발생했습니다.');
+      console.error('Save daily log error:', err);
+      alert('오류가 발생했습니다.');
     } finally {
       setIsSaving(false);
     }
@@ -163,37 +176,72 @@ export default function DailyRecordForm({
   const activeCategories = categories.filter((c) => c.is_active);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 pb-20">
-      {/* 갤럭시 S10 맞춤 몸무게 입력 */}
-      <div className="bg-slate-800/80 border border-slate-700/70 rounded-xl p-3.5 space-y-2">
-        <div className="flex items-center gap-1.5">
-          <Scale className="w-4 h-4 text-cyan-400" />
-          <label htmlFor="weight-input" className="font-bold text-slate-100 text-xs sm:text-sm">
-            오늘의 몸무게 (kg)
-          </label>
-        </div>
-        <div className="relative">
-          <input
-            id="weight-input"
-            type="number"
-            step="0.1"
-            placeholder="예: 72.5"
-            value={weight}
-            onChange={(e) => setWeight(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-700 focus:border-cyan-400 rounded-lg py-2.5 px-3 text-cyan-400 text-lg font-black placeholder:text-slate-600 focus:outline-none transition-colors"
-          />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-500">
-            kg
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* 1. 공개 / 비공개 설정 토글 */}
+      <div className="bg-slate-800/80 border border-slate-700/70 rounded-xl p-3 space-y-2">
+        <label className="text-xs font-bold text-slate-200 flex items-center justify-between">
+          <span>공개 / 비공개 설정</span>
+          <span className="text-[10px] text-slate-400 font-normal">
+            {isPublic ? '🌐 이웃 피드에 공개됨' : '🔒 나만 보기 보호'}
           </span>
+        </label>
+
+        <div className="grid grid-cols-2 gap-2 p-1 bg-slate-900/90 rounded-lg">
+          <button
+            type="button"
+            onClick={() => setIsPublic(false)}
+            className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-xs font-bold transition-all ${
+              !isPublic
+                ? 'bg-slate-700 text-emerald-400 border border-slate-600 shadow'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Lock className="w-3.5 h-3.5" />
+            <span>🔒 나만 보기</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsPublic(true)}
+            className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-xs font-bold transition-all ${
+              isPublic
+                ? 'bg-emerald-500 text-slate-950 shadow shadow-emerald-500/20'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Globe className="w-3.5 h-3.5" />
+            <span>🌐 이웃 피드 공개</span>
+          </button>
         </div>
       </div>
 
-      {/* 운동 종목 리스트 */}
+      {/* 2. 몸무게 입력 */}
+      <div className="bg-slate-800/80 border border-slate-700/70 rounded-xl p-3.5 space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-200">
+            <Scale className="w-4 h-4 text-emerald-400" />
+            <label htmlFor="weight-input">몸무게 (kg)</label>
+          </div>
+          <span className="text-[10px] text-slate-400">당일 체중 입력</span>
+        </div>
+        <input
+          id="weight-input"
+          type="number"
+          step="0.1"
+          placeholder="예: 72.5"
+          value={weight}
+          onChange={(e) => setWeight(e.target.value)}
+          className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-400 rounded-lg p-2.5 text-slate-100 font-bold text-sm placeholder:text-slate-600 focus:outline-none transition-colors"
+        />
+      </div>
+
+      {/* 3. 운동 종목 실적 작성 리스트 */}
       <div className="space-y-3">
-        <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1 px-0.5">
-          <Dumbbell className="w-3.5 h-3.5 text-emerald-400" />
-          운동 세부 기록
-        </h3>
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-200">
+            <Dumbbell className="w-4 h-4 text-emerald-400" />
+            <span>오늘의 운동 실적</span>
+          </div>
+        </div>
 
         {activeCategories.map((cat) => {
           const rec = recordsMap[cat.id] || {
@@ -209,72 +257,99 @@ export default function DailyRecordForm({
           return (
             <div
               key={cat.id}
-              className="bg-slate-800/80 border border-slate-700/70 rounded-xl p-3.5 space-y-2.5"
+              className="bg-slate-800/80 border border-slate-700/70 rounded-xl p-3.5 space-y-2.5 transition-colors"
             >
               <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-100 text-xs sm:text-sm flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                  {cat.name}
-                </span>
-                <span className="text-[10px] bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-full font-medium">
-                  {cat.category_tag || '운동'}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                  <h4 className="font-bold text-slate-100 text-xs sm:text-sm">{cat.name}</h4>
+                  <span className="text-[10px] bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded">
+                    {cat.category_tag || '운동'}
+                  </span>
+                </div>
               </div>
 
-              {/* SET_REPS 타입 세트 입력 */}
+              {/* SET_REPS 세트별 횟수 입력 */}
               {cat.unit_type === 'SET_REPS' && (
                 <div className="space-y-2">
-                  <div className="space-y-1.5">
-                    {rec.sets_data?.map((s, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <span className="text-xs text-slate-400 font-semibold w-10">
-                          {s.set}세트
-                        </span>
-                        <div className="flex-1 flex items-center gap-1">
-                          <input
-                            type="number"
-                            min="1"
-                            value={s.reps}
-                            onChange={(e) =>
-                              handleSetRepsChange(cat.id, idx, parseInt(e.target.value) || 0)
-                            }
-                            className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-400 rounded-lg py-1 px-2.5 text-emerald-400 text-xs font-bold text-center focus:outline-none"
-                          />
-                          <span className="text-xs text-slate-400 font-medium">회</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveSet(cat.id, idx)}
-                          className="p-1 text-slate-500 hover:text-red-400 transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 font-medium">
+                    <span>세트 구성</span>
+                    <span>총 횟수: <strong className="text-emerald-400">{rec.total_reps || 0}회</strong></span>
                   </div>
+
+                  {rec.sets_data && rec.sets_data.length > 0 && (
+                    <div className="grid grid-cols-2 gap-2">
+                      {rec.sets_data.map((setData, setIdx) => (
+                        <div
+                          key={setIdx}
+                          className="flex items-center justify-between bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5"
+                        >
+                          <span className="text-[11px] font-semibold text-slate-300">
+                            {setData.set}세트
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              value={setData.reps}
+                              onChange={(e) =>
+                                handleSetRepsChange(cat.id, setIdx, parseInt(e.target.value) || 0)
+                              }
+                              className="w-12 bg-slate-800 border border-slate-600 focus:border-emerald-400 rounded text-center text-xs font-bold text-emerald-400 py-0.5 focus:outline-none"
+                            />
+                            <span className="text-[10px] text-slate-400">회</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveSet(cat.id, setIdx)}
+                              className="text-slate-500 hover:text-rose-400 p-0.5 transition-colors"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   <button
                     type="button"
                     onClick={() => handleAddSet(cat.id)}
-                    className="w-full py-1.5 bg-slate-900/80 hover:bg-slate-700/60 border border-dashed border-slate-700 hover:border-emerald-500/50 text-emerald-400 text-xs font-semibold rounded-lg flex items-center justify-center gap-1 transition-all"
+                    className="w-full py-2 bg-slate-900/60 hover:bg-slate-700/60 border border-dashed border-slate-700 text-slate-300 font-bold text-xs rounded-lg flex items-center justify-center gap-1 transition-all"
                   >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>세트 추가</span>
+                    <Plus className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>세트 추가 (+1)</span>
                   </button>
                 </div>
               )}
 
-              {/* DISTANCE_TIME 유산소 입력 */}
+              {/* TOTAL_REPS 총 횟수만 입력 */}
+              {cat.unit_type === 'TOTAL_REPS' && (
+                <div>
+                  <label className="text-[10px] text-slate-400 font-medium block mb-1">
+                    총 수행 횟수
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="예: 50"
+                    value={rec.total_reps || ''}
+                    onChange={(e) =>
+                      handleRecordFieldChange(cat.id, 'total_reps', parseInt(e.target.value) || 0)
+                    }
+                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-400 rounded-lg py-1.5 px-2 text-emerald-400 text-xs font-bold focus:outline-none"
+                  />
+                </div>
+              )}
+
+              {/* DISTANCE_TIME 거리 + 시간 입력 */}
               {cat.unit_type === 'DISTANCE_TIME' && (
-                <div className="grid grid-cols-2 gap-2 pt-0.5">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[10px] text-slate-400 font-medium block mb-1">
                       거리 (km)
                     </label>
                     <input
                       type="number"
-                      step="0.01"
-                      placeholder="0.0"
+                      step="0.1"
+                      placeholder="예: 5.0"
                       value={rec.distance_km || ''}
                       onChange={(e) =>
                         handleRecordFieldChange(cat.id, 'distance_km', parseFloat(e.target.value) || 0)
@@ -284,18 +359,14 @@ export default function DailyRecordForm({
                   </div>
                   <div>
                     <label className="text-[10px] text-slate-400 font-medium block mb-1">
-                      시간 (분)
+                      시간 (초)
                     </label>
                     <input
                       type="number"
-                      placeholder="0"
-                      value={rec.duration_seconds ? Math.floor(rec.duration_seconds / 60) : ''}
+                      placeholder="예: 1500초 (25분)"
+                      value={rec.duration_seconds || ''}
                       onChange={(e) =>
-                        handleRecordFieldChange(
-                          cat.id,
-                          'duration_seconds',
-                          (parseInt(e.target.value) || 0) * 60
-                        )
+                        handleRecordFieldChange(cat.id, 'duration_seconds', parseInt(e.target.value) || 0)
                       }
                       className="w-full bg-slate-900 border border-slate-700 focus:border-cyan-400 rounded-lg py-1.5 px-2 text-cyan-400 text-xs font-bold focus:outline-none"
                     />
@@ -303,7 +374,7 @@ export default function DailyRecordForm({
                 </div>
               )}
 
-              {/* DURATION 시간만 입력 */}
+              {/* DURATION 시간 입력 */}
               {cat.unit_type === 'DURATION' && (
                 <div>
                   <label className="text-[10px] text-slate-400 font-medium block mb-1">
@@ -343,7 +414,7 @@ export default function DailyRecordForm({
         />
       </div>
 
-      {/* 저장 / 취소 액션 버튼 */}
+      {/* 저장 / 취소 버튼 */}
       <div className="flex gap-2">
         {onCancel && (
           <button
@@ -364,7 +435,7 @@ export default function DailyRecordForm({
           ) : (
             <>
               <CheckCircle2 className="w-4 h-4" />
-              <span>오늘 기록 저장하기</span>
+              <span>오늘 기록 저장하기 ({isPublic ? '🌐 공개' : '🔒 비공개'})</span>
             </>
           )}
         </button>

@@ -1,113 +1,126 @@
-# 🏋️‍♂️ 운동 & 몸무게 기록 및 통계 웹 서비스 PRD (Product Requirement Document)
+# 🏋️‍♂️ 운동 & 몸무게 기록, 이웃 응원 피드 웹 서비스 PRD (Product Requirement Document)
 
-> **버전**: v1.3 (첫 화면 즉시 입력/조회 UX 흐름 반영)  
-> **작성일**: 2026-08-06  
-
----
-
-## 1. 프로젝트 개요 (Overview)
-본 프로젝트는 사용자가 일상적인 운동(턱걸이, 팔굽혀펴기, AB슬라이드, 달리기 등)과 몸무게 변화를 일일 단위로 간편하게 기록하고, 이를 다양한 기간 단위(**주간-일요일 시작**, **월간**, **분기**, **반기**, **연간**)로 시각화하여 분석할 수 있는 **모바일 퍼스트(Mobile-First)** 웹 대시보드 애플리케이션 개발을 목표로 합니다.
-
-앱 진입 시 **첫 화면에서 오늘(Today) 날짜의 기록 폼이 즉시 노출**되어, 기존 기록이 있으면 바로 조회 및 빠른 수정을, 기록이 없으면 즉시 입력을 수행할 수 있는 직관적인 동선을 제공합니다.
+> **버전**: v2.0 (Supabase Auth, RLS 데이터 격리, 거리 기반 이웃 피드 및 소셜 응원 반영)  
+> **작성일**: 2026-08-07  
 
 ---
 
-## 2. 주요 목표 & 시스템 비전 (Goals & Vision)
+## 1. 🎯 프로젝트 개요 (Overview)
 
-- **⚡ 첫 화면 즉시 기록 (Instant Today Logger)**: 앱 접속 시 오늘 날짜로 자동 설정. 기록이 있으면 요약/수정 화면, 없으면 즉시 입력 폼 노출.
-- **📱 모바일 최적화 UX/UI**: 한 손 조작이 용이한 하단 탭 바(Bottom Nav), 좌우 날짜 이동 스와이프, 터치 피드백.
-- **🎨 눈이 편안한 고가시성 디자인**: 눈의 피로를 최소화하는 딥 슬레이트 테마 기반 Muted Emerald & Soft Cyan/Amber 조화로운 포인트 컬러 시스템.
-- **자유로운 운동 종목 커스텀**: 운동 종목(세트/횟수형, 시간형, 유산소 거리형 등)의 추가, 수정, 숨김/삭제 지원.
-- **일요일 시작 주간 통계 및 다양한 분석 주기**:
-  - **주간 (Weekly)**: **일요일 ~ 토요일 (Sun ~ Sat)** 기준 주간 뷰 지원
-  - **월간 / 분기 / 반기 / 연간** 통계 차트 및 성장 리포트 제공
-- **단계별 배포 및 테스팅 파이프라인**:
-  - 1단계: **Docker & Docker Compose** 기반 로컬 독립 테스트 환경
-  - 2단계: **GitHub Repository** + **Supabase (DB & Auth)** + **Vercel (자동 빌드/배포)** 프로덕션 연동
+본 서비스는 사용자가 매일의 운동(턱걸이, 팔굽혀펴기, 달리어서 등)과 몸무게 변화를 간편하게 기록하고 통계로 관리하는 **모바일 퍼스트(Mobile-First) 헬스 트래킹 웹 앱**입니다.
+
+**v2.0 핵심 확장**:
+- **Supabase Auth** 기반의 안전한 로그인/회원가입 지원
+- **Row Level Security (RLS)** 기반으로 로그인한 본인의 데이터만 기본적으로 안전하게 격리/보호
+- **공개 / 비공개 (Public / Private)** 옵션을 제공하여 본인 일지를 선택적으로 커뮤니티에 공유
+- **위치/거리 기반 (Distance-based)** 이웃 피드: 근처에 있는 다른 러너/운동 유저들과 거리(예: 1.2km 떨어진 이웃)를 표시
+- **소셜 응원 기능**: 공개된 이웃의 일지에 **응원하기(좋아요/스탬프)**를 누르거나 **응원 댓글**을 남겨 상호 동기부여 제공
 
 ---
 
-## 3. 📱 첫 화면 UX & 메인 일지 동선 (Core Today Screen Flow)
+## 2. 🔑 주요 목표 & 시스템 비전 (Goals & Vision)
 
-```
-[ 앱 접속 (첫 화면) ]
-         │
-         ▼
-[ 오늘(Today) 날짜 자동 세팅 ]
-         │
- ┌───────┴─────────────────────────────┐
- │                                     │
- ▼ (기록 없음)                         ▼ (기록 존재)
-[ 오늘 기록 작성 폼 ]               [ 입력된 당일 실적 요약 카드 ]
-- 몸무게 입력                          - 오늘 몸무게 (전일 대비 증감 표시)
-- 활성화된 운동 목록 세트/횟수 작성      - 수행한 운동별 세트/거리 요약
-- [저장하기] 버튼                      - ✏️ [빠른 수정] 버튼 클릭 시 즉시 편집
-```
+1. **🔐 보안 & 개인 데이터 격리 (Privacy & RLS)**:
+   - Supabase Auth 인증을 적용하여 본인 계정 데이터만 조회/수정 가능.
+   - 기본 설정은 **비공개(Private)**로 보호되며, 사용자가 원하는 기록만 **공개(Public)**로 전환.
 
-### 3.1 날짜 전환 헤더 (Date Picker Header)
-- 화면 최상단: `◀ 2026년 8월 6일 (오늘) ▶` (좌/우 화살표 터치 또는 스와이프로 어제/내일 이동 가능).
-- `[오늘]` 버튼: 다른 날짜 조회 중 한 번의 터치로 오늘 날짜로 원복.
+2. **📍 거리 기반 이웃 피드 (Geo-Distance Neighbor Feed)**:
+   - 사용자의 대략적인 위치 정보(위도/경도 또는 지역 단위)를 바탕으로 **떨어져 있는 거리(km/m)**를 계산 및 표시.
+   - "500m 부근 헬스 메이트", "2.1km 떨어진 이웃 러너" 등의 직관적인 소셜 카드 연결.
 
-### 3.2 오늘 데이터가 없는 경우 (New Entry Mode)
-- **몸무게 입력 카운터/키패드**: 소수점 빠른 입력.
-- **활성화된 운동 종목 리스트**:
-  - 종목별 세트 추가 `(+)` 버튼으로 빠른 세트 입력 (예: 1세트 10회 ➜ 2세트 10회).
-- 하단 **`[오늘 기록 저장]`** 고정 액션 버튼.
+3. **👏 소셜 응원 & 동기부여 (Cheering System)**:
+   - 공개된 일지에 **응원하기 (좋아요/응원 스탬프 💪, 👏, 🔥)** 클릭.
+   - **응원 댓글 (Cheer Comment)**을 통해 떨어진 거리의 운동 이웃끼리 긍정적인 메시지 교환.
 
-### 3.3 오늘 데이터가 이미 있는 경우 (View & Quick Edit Mode)
-- **오늘의 요약 뷰 카드**:
-  - ⚖️ 몸무게: `72.5 kg` (어제 대비 -0.3kg 🔻)
-  - 🏋️‍♂️ 오늘 수행한 운동 리포트 (예: 턱걸이 총 45회 / 4세트, 달리기 3.5km).
-  - 📝 당일 메모
-- **`[수정하기]` / `[세트 추가]`**: 원터치로 수정 모드 전환하여 즉시 값 업데이트 가능.
+4. **⚡ 첫 화면 즉시 기록 & 통계**:
+   - 기존의 빠른 오늘 기록 동선 유지 및 주간(일요일 시작), 월간, 분기 통계 차트 제공.
 
 ---
 
-## 4. 🎨 모바일 퍼스트 디자인 시스템 (Mobile UI/UX System)
+## 3. 📱 핵심 기능 & UX 흐름 (Core Features & UX Flow)
 
-### 4.1 모바일 레이아웃 & 내비게이션
+### 3.1 사용자 인증 (Supabase Auth)
+- **로그인/회원가입 폼**: 이메일/비밀번호 및 소셜 로그인 지원.
+- **세션 상태 관리**: 비로그인 시 안내 스플래시 및 로그인 페이지로 유도, 로그인 시 개인 일지 메인으로 진입.
+
+### 3.2 개인 데이터 격리 & 공개/비공개 설정
+- **기본 비공개 (Default Private)**: 작성된 모든 일지와 운동 기록은 기본적으로 작성자 본인만 접근 가능.
+- **공개 전환 스위치 (Public Toggle)**:
+  - 프로필 설정: "내 프로필 이웃 피드에 공개하기" ON/OFF
+  - 일지 작성/수정 시: `[🌐 피드에 공개]` / `[🔒 나만 보기]` 토글 스위치 제공.
+
+### 3.3 거리 기반 이웃 피드 (Neighborhood Feed)
+- **위치 정보 동의 및 등록**:
+  - 브라우저 Geolocation API를 활용해 위치 등록 (또는 대표 동네 선택).
+  - 프라이버시 보호를 위해 정확한 주소가 아닌 **대략적인 오프셋/거리(km/m)**만 표출.
+- **이웃 탐색 탭 (Feed / Community Tab)**:
+  - 공개 설정된 타 사용자들의 일지가 거리 순(가까운 이웃 순) 또는 최신 순으로 카드 표출.
+  - 카드 표출 항목: 닉네임, 떨어진 거리 (`1.2 km 떨어진 이웃`), 오늘 수행한 운동 요약, 응원 수, 댓글 수.
+
+### 3.4 응원하기 (좋아요) & 응원 댓글
+- **응원하기 (Cheer Likes)**:
+  - 이웃 일지 카드의 `[💪 응원하기]` 버튼 클릭 시 좋아요 카운트 증가.
+  - 이모지 반응 선택 가능 (🔥 파이팅, 👏 대단해요, ❤️ 응원해요).
+- **응원 댓글 (Cheer Comments)**:
+  - 공개 일지 하단에 간단한 응원 댓글 작성 (예: "오늘도 턱걸이 최고네요! 같이 파이팅해요!").
+  - 본인 일지에 달린 응원 댓글 및 좋아요 목록 확인 가능.
+
+---
+
+## 4. 🎨 모바일 퍼스트 내비게이션 구조
+
 - **하단 고정 탭 바 (Bottom Navigation Bar)**:
-  - 📌 `일지 (Record)`: 첫 화면 (오늘 기록/조회/수정)
-  - 📊 `통계 (Analytics)`: 주(일요일 시작)/월/분기/반기/연간 차트 뷰
-  - ⚙️ `종목 관리 (Exercises)`: 운동 종목 추가/수정/순서 변경
-  - 👤 `마이 (Profile)`: 데이터 백업 및 설정
-
-### 4.2 피로감 최소화 & 고가시성 컬러 팔레트 (Comfort & High Contrast)
-- **배경 (Background)**: `#0F172A` (Deep Slate - 눈이 편안한 딥 슬레이트)
-- **주요 색상 (Primary Accent)**: `#10B981` / `#34D399` (Muted Sage Emerald - 편안한 그린 톤)
-- **보조 색상 (Secondary)**: `#38BDF8` (Soft Cyan) / `#F59E0B` (Warm Amber)
-- **텍스트 (Text)**: `#F8FAFC` (Warm White) / `#94A3B8` (Soft Gray)
+  - 📌 `일지 (Record)`: 메인 오늘 기록/조회/수정 및 공개/비공개 토글
+  - 📊 `통계 (Analytics)`: 개인 주기별(일요일 시작 주간, 월간 등) 성과 차트
+  - 🌐 `이웃 피드 (Community)`: 거리 기반 이웃 운동 일지 탐색, 응원하기 및 댓글
+  - ⚙️ `종목 관리 (Exercises)`: 운동 종목 커스텀 등록
+  - 👤 `마이 (Profile)`: 계정 정보, 위치 설정, 공개 범위 기본값 설정 및 내 응원 알림
 
 ---
 
-## 5. 상세 기능 요구사항 (Detailed Specifications)
-
-### 5.1 운동 종목 커스텀 관리
-- 종목 관리 스와이프 액션 (순서 변경, 삭제/숨김)
-- 유형: `세트+횟수`, `총 횟수`, `거리+시간`, `시간`
-
-### 5.2 주기별 통계 대시보드 (Multi-period Analytics)
-- **주간 (Weekly)**: **일요일부터 토요일까지 (Sunday ~ Saturday)**
-- **월간 / 분기 / 반기 / 연간** 슬라이더 세그먼트
-- Recharts 모바일 반응형 터치 차트
-
----
-
-## 6. Supabase 데이터베이스 설계 (Database Schema)
+## 5. 🗄️ Supabase 데이터베이스 설계 & RLS (Database & RLS Schema)
 
 ```sql
--- profiles (사용자 프로필)
+-- 1. PostGIS 또는 거리 계산 유틸리티 함수 (Haversine 공식 거리 계산: km 단위)
+CREATE OR REPLACE FUNCTION calculate_distance(
+  lat1 NUMERIC, lon1 NUMERIC,
+  lat2 NUMERIC, lon2 NUMERIC
+) RETURNS NUMERIC AS $$
+DECLARE
+  R NUMERIC := 6371; -- 지구 반지름 (km)
+  dLat NUMERIC := radians(lat2 - lat1);
+  dLon NUMERIC := radians(lon2 - lon1);
+  a NUMERIC;
+  c NUMERIC;
+BEGIN
+  IF lat1 IS NULL OR lon1 IS NULL OR lat2 IS NULL OR lon2 IS NULL THEN
+    RETURN NULL;
+  END IF;
+  a := sin(dLat/2)^2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dLon/2)^2;
+  c := 2 * atan2(sqrt(a), sqrt(1-a));
+  RETURN ROUND((R * c)::numeric, 1); -- 소수점 첫째자리 km 리턴
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- 2. profiles (사용자 프로필 및 위치 정보)
 CREATE TABLE profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id),
-  username TEXT,
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  username TEXT NOT NULL,
+  avatar_url TEXT,
+  bio TEXT,
   weight_unit TEXT DEFAULT 'kg',
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  is_public BOOLEAN DEFAULT TRUE, -- 프로필 피드 노출 여부
+  latitude NUMERIC(10, 7),        -- 위도
+  longitude NUMERIC(10, 7),       -- 경도
+  location_name TEXT,             -- 예: '서울시 마포구'
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- exercise_categories (운동 종목 마스터)
+-- 3. exercise_categories (운동 종목 마스터)
 CREATE TABLE exercise_categories (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES profiles(id),
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   unit_type TEXT NOT NULL, -- 'SET_REPS', 'TOTAL_REPS', 'DISTANCE_TIME', 'DURATION'
   category_tag TEXT,
@@ -116,40 +129,127 @@ CREATE TABLE exercise_categories (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- daily_logs (일일 기록 메인)
+-- 4. daily_logs (일일 기록 메인 & 공개 여부)
 CREATE TABLE daily_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES profiles(id),
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   log_date DATE NOT NULL,
   weight NUMERIC(5, 2),
   memo TEXT,
+  is_public BOOLEAN DEFAULT FALSE, -- 기본값 비공개 (나만 보기)
+  likes_count INT DEFAULT 0,
+  comments_count INT DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   CONSTRAINT unique_user_log_date UNIQUE (user_id, log_date)
 );
 
--- exercise_records (운동별 실적 기록)
+-- 5. exercise_records (운동별 실적 기록)
 CREATE TABLE exercise_records (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   log_id UUID REFERENCES daily_logs(id) ON DELETE CASCADE,
-  category_id UUID REFERENCES exercise_categories(id),
-  sets_data JSONB, -- [{"set": 1, "reps": 10}, {"set": 2, "reps": 8}]
+  category_id UUID REFERENCES exercise_categories(id) ON DELETE CASCADE,
+  sets_data JSONB,
   total_reps INT,
   distance_km NUMERIC(6, 2),
   duration_seconds INT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- 6. cheer_likes (응원/좋아요 테이블)
+CREATE TABLE cheer_likes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  log_id UUID REFERENCES daily_logs(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  reaction_type TEXT DEFAULT '💪', -- '💪', '🔥', '👏', '❤️'
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT unique_user_log_like UNIQUE (log_id, user_id)
+);
+
+-- 7. cheer_comments (응원 댓글 테이블)
+CREATE TABLE cheer_comments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  log_id UUID REFERENCES daily_logs(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+----------------------------------------------------------------
+-- Row Level Security (RLS) 정책 설정
+----------------------------------------------------------------
+
+-- Enable RLS
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE daily_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE exercise_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cheer_likes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cheer_comments ENABLE ROW LEVEL SECURITY;
+
+-- Profiles Policy: 본인 관리 및 공개 프로필 전체 조회
+CREATE POLICY "Public profiles are viewable by everyone" ON profiles
+  FOR SELECT USING (is_public = TRUE OR auth.uid() = id);
+
+CREATE POLICY "Users can update own profile" ON profiles
+  FOR UPDATE USING (auth.uid() = id);
+
+-- Daily Logs Policy: 본인 작성 일지 관리 및 공개 일지 전체 조회
+CREATE POLICY "Users can view own logs or public logs" ON daily_logs
+  FOR SELECT USING (auth.uid() = user_id OR is_public = TRUE);
+
+CREATE POLICY "Users can insert own logs" ON daily_logs
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own logs" ON daily_logs
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own logs" ON daily_logs
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- Cheer Likes Policy: 공개 일지에 대해 누구나 조회/작성
+CREATE POLICY "Anyone can view likes on accessible logs" ON cheer_likes
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM daily_logs 
+      WHERE daily_logs.id = cheer_likes.log_id 
+      AND (daily_logs.is_public = TRUE OR daily_logs.user_id = auth.uid())
+    )
+  );
+
+CREATE POLICY "Authenticated users can like public logs" ON cheer_likes
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own likes" ON cheer_likes
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- Cheer Comments Policy: 공개 일지에 대해 누구나 조회/작성
+CREATE POLICY "Anyone can view comments on accessible logs" ON cheer_comments
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM daily_logs 
+      WHERE daily_logs.id = cheer_comments.log_id 
+      AND (daily_logs.is_public = TRUE OR daily_logs.user_id = auth.uid())
+    )
+  );
+
+CREATE POLICY "Authenticated users can comment on public logs" ON cheer_comments
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own comments" ON cheer_comments
+  FOR DELETE USING (auth.uid() = user_id);
 ```
 
 ---
 
-## 7. 마일스톤 및 개발 단계 (Milestones)
+## 6. 🚀 마일스톤 (Milestones)
 
-### Phase 1: 로컬 모바일 웹 개발 & Docker 테스트 환경 구축
-1. Next.js 기반 첫 화면 (오늘 날짜 자동 로드, 입력/조회/수정 모드 전환 UX) 개발
-2. 모바일 반응형 딥 슬레이트 & 에메랄드 테마 구축 및 Dockerfile/docker-compose 작성
-3. 종목 관리 CRUD, 주간(일요일 시작) 및 각 주기별 통계 차트 구현
+1. **Phase 1: Auth & RLS 통합**
+   - Supabase Auth 회원가입/로그인 UI 및 세션 컨텍스트 연동
+   - 데이터베이스 RLS 적용으로 개인 데이터 완벽 보안 격리
 
-### Phase 2: Supabase & GitHub & Vercel 연동 배포
-1. Supabase PostgreSQL 마이그레이션 & RLS 설정
-2. Supabase Auth 연동
-3. GitHub 레포지토리 연결 및 Vercel 자동 배포
+2. **Phase 2: 공개/비공개 토글 & 이웃 탐색 피드**
+   - 일지별/프로필별 공개 여부 선택 옵션 개발
+   - 브라우저 위치 정보 기반 거리를 계산하는 SQL 함수 및 거리순 이웃 피드 UI 개발
+
+3. **Phase 3: 소셜 응원(좋아요 & 댓글) 시스템**
+   - 이웃 피드에서 응원 스탬프(좋아요) 누르기 및 카운트 실시간 업데이트
+   - 응원 댓글 작성, 조회 및 내 일지에 들어온 소셜 반응 알림 표시

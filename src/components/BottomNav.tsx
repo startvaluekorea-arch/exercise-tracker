@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ClipboardList, BarChart3, Dumbbell } from 'lucide-react';
+import { ClipboardList, BarChart3, Users, Dumbbell, User } from 'lucide-react';
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -10,11 +10,13 @@ export default function BottomNav() {
   const navItems = [
     { href: '/', label: '일지', icon: ClipboardList },
     { href: '/stats', label: '통계', icon: BarChart3 },
+    { href: '/community', label: '이웃 피드', icon: Users },
     { href: '/exercises', label: '종목 관리', icon: Dumbbell },
+    { href: '/profile', label: '마이', icon: User },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 py-1.5 max-w-[412px] mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 py-1.5 max-w-[440px] mx-auto">
       <div className="flex justify-around items-center">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -30,7 +32,7 @@ export default function BottomNav() {
               }`}
             >
               <Icon className={`w-5 h-5 mb-0.5 ${isActive ? 'stroke-[2.5]' : 'stroke-2'}`} />
-              <span className="text-[11px] tracking-tight">{item.label}</span>
+              <span className="text-[10px] sm:text-[11px] tracking-tight">{item.label}</span>
             </Link>
           );
         })}

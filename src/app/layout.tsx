@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import BottomNav from '@/components/BottomNav';
+import Providers from '@/components/Providers';
 
 export const metadata: Metadata = {
-  title: '운동 & 몸무게 기록 일지',
-  description: '일일 단위 운동 및 몸무게를 기록하고 주간(일요일 시작)/월간/분기/반기/연간 통계를 조회하는 모바일 대시보드',
+  title: '운동 & 몸무게 기록, 이웃 피드 일지',
+  description: '일일 운동 기록, Supabase Auth 기반 RLS 보안, 공개/비공개 설정 및 거리 기반 이웃 응원 커뮤니티 모바일 웹',
 };
 
 export const viewport: Viewport = {
@@ -22,10 +23,12 @@ export default function RootLayout({
   return (
     <html lang="ko" className="dark">
       <body className="bg-slate-950 text-slate-100 antialiased min-h-screen">
-        <main className="mobile-container pb-16">
-          {children}
-          <BottomNav />
-        </main>
+        <Providers>
+          <main className="mobile-container pb-16">
+            {children}
+            <BottomNav />
+          </main>
+        </Providers>
       </body>
     </html>
   );

@@ -5,9 +5,23 @@ export interface SetData {
   reps: number;
 }
 
+export interface UserProfile {
+  id: string;
+  username: string;
+  avatar_url?: string;
+  bio?: string;
+  weight_unit?: string;
+  is_public: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
+  location_name?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface ExerciseCategory {
   id: string;
-  user_id: string;
+  user_id?: string;
   name: string;
   unit_type: UnitType;
   category_tag: string;
@@ -34,8 +48,36 @@ export interface DailyLog {
   log_date: string; // YYYY-MM-DD
   weight: number | null;
   memo: string;
+  is_public: boolean; // 공개 여부 (TRUE: 공개, FALSE: 나만 보기)
+  likes_count?: number;
+  comments_count?: number;
   records: ExerciseRecord[];
   created_at?: string;
+}
+
+export interface CheerLike {
+  id: string;
+  log_id: string;
+  user_id: string;
+  reaction_type: '💪' | '🔥' | '👏' | '❤️';
+  created_at: string;
+}
+
+export interface CheerComment {
+  id: string;
+  log_id: string;
+  user_id: string;
+  user_name?: string;
+  user_avatar?: string;
+  content: string;
+  created_at: string;
+}
+
+export interface CommunityFeedLog extends DailyLog {
+  user_profile?: UserProfile;
+  distance_km?: number | null; // 내 위치 기준 떨어진 거리 (km)
+  user_has_liked?: boolean;
+  user_like_reaction?: string;
 }
 
 export type PeriodType = 'weekly' | 'monthly' | 'quarterly' | 'half' | 'yearly';

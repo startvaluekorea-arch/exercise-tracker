@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { DailyLog } from '@/lib/types';
 import { formatDuration } from '@/lib/dateUtils';
-import { Scale, Edit3, Dumbbell, CalendarCheck } from 'lucide-react';
+import { toggleLogVisibility } from '@/lib/db';
+import { Scale, Edit3, Dumbbell, CalendarCheck, Globe, Lock, Heart, MessageSquare } from 'lucide-react';
 
 interface DailySummaryCardProps {
   log: DailyLog;
@@ -10,26 +12,58 @@ interface DailySummaryCardProps {
 }
 
 export default function DailySummaryCard({ log, onEditClick }: DailySummaryCardProps) {
+  const [isPublic, setIsPublic] = useState<boolean>(log.is_public ?? false);
+  const [isToggling, setIsToggling] = useState<boolean>(false);
+
   const hasRecords = log.records && log.records.length > 0;
   const hasWeight = log.weight !== null && log.weight !== undefined;
 
+  const handleToggleVisibility = async () => {
+    if (!log.id) return;
+    setIsToggling(true);
+    const nextPublic = !isPublic;
+    const ok = await toggleLogVisibility(log.id, nextPublic);
+    if (ok) {
+      setIsPublic(nextPublic);
+    }
+    setIsToggling(false);
+  };
+
   return (
     <div className="bg-slate-800/80 border border-slate-700/70 rounded-2xl p-4 backdrop-blur-sm shadow-xl space-y-4">
-      {/* 헤더 영역 - 갤럭시 S10 360px 한 줄 피트 최적화 */}
+      {/* 헤더 영역 - 공개/비공개 상태표시 뱃지 및 빠른 조작 */}
       <div className="flex items-center justify-between border-b border-slate-700/60 pb-3 gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <div className="p-1.5 bg-emerald-950/80 border border-emerald-800/50 rounded-xl shrink-0">
             <CalendarCheck className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="min-w-0">
-            <h3 className="font-extrabold text-slate-100 text-xs sm:text-sm tracking-tight whitespace-nowrap">
-              오늘의 운동 일지 완료
-            </h3>
-            <p className="text-[10px] text-slate-400 truncate">
-              기록이 성공적으로 저장되어 있습니다
+            <div className="flex items-center gap-1.5">
+              <h3 className="font-extrabold text-slate-100 text-xs sm:text-sm tracking-tight whitespace-nowrap">
+                오늘의 운동 일지
+              </h3>
+
+              {/* 공개/비공개 뱃지 버튼 */}
+              <button
+                onClick={handleToggleVisibility}
+                disabled={isToggling || !log.id}
+                title="클릭하여 공개/비공개 전환"
+                className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-bold transition-all border ${
+                  isPublic
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
+                    : 'bg-slate-700/60 text-slate-400 border-slate-600 hover:text-slate-200'
+                }`}
+              >
+                {isPublic ? <Globe className="w-3 h-3 text-emerald-400" /> : <Lock className="w-3 h-3 text-slate-400" />}
+                <span>{isPublic ? '🌐 이웃 공개 중' : '🔒 나만 보기'}</span>
+              </button>
+            </div>
+            <p className="text-[10px] text-slate-400 truncate mt-0.5">
+              {isPublic ? '이웃 탐색 피드에 내 기록이 공유되어 응원을 받을 수 있습니다.' : '내 전용 개인 공간에 격리되어 안전합니다.'}
             </p>
           </div>
         </div>
+
         <button
           onClick={onEditClick}
           className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 font-bold text-xs rounded-xl transition-all shadow-md shadow-emerald-950/40 shrink-0"
@@ -111,6 +145,23 @@ export default function DailySummaryCard({ log, onEditClick }: DailySummaryCardP
         <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-2.5">
           <span className="text-[10px] text-slate-400 font-semibold block mb-0.5">📝 메모</span>
           <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-wrap">{log.memo}</p>
+        </div>
+      )}
+
+      {/* 소셜 반응 정보 (공개 시) */}
+      {isPublic && (
+        <div className="pt-2 border-t border-slate-700/50 flex items-center justify-between text-xs text-slate-400">
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1 text-rose-400">
+              <Heart className="w-3.5 h-3.5 fill-rose-400/20" />
+              <strong>{log.likes_count || 0}</strong>개 응원
+            </span>
+            <span className="flex items-center gap-1 text-sky-400">
+              <MessageSquare className="w-3.5 h-3.5" />
+              <strong>{log.comments_count || 0}</strong>개 댓글
+            </span>
+          </div>
+          <span className="text-[10px] text-emerald-400 font-medium">🌐 이웃 피드 노출 중</span>
         </div>
       )}
     </div>
