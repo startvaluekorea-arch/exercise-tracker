@@ -5,12 +5,16 @@ import DateHeader from '@/components/DateHeader';
 import DailySummaryCard from '@/components/DailySummaryCard';
 import DailyRecordForm from '@/components/DailyRecordForm';
 import SplashLanding from '@/components/SplashLanding';
+import AuthModal from '@/components/AuthModal';
+import { useAuth } from '@/context/AuthContext';
 import { DailyLog, ExerciseCategory } from '@/lib/types';
 import { getTodayString } from '@/lib/dateUtils';
-import { Loader2 } from 'lucide-react';
+import { Loader2, LogIn, User, ShieldCheck } from 'lucide-react';
 
 export default function HomePage() {
+  const { user, profile } = useAuth();
   const [showSplash, setShowSplash] = useState<boolean>(true);
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [currentDate, setCurrentDate] = useState<string>(getTodayString());
   const [dailyLog, setDailyLog] = useState<DailyLog | null>(null);
   const [categories, setCategories] = useState<ExerciseCategory[]>([]);
@@ -74,6 +78,34 @@ export default function HomePage() {
         <SplashLanding onComplete={() => setShowSplash(false)} />
       )}
 
+      {/* 상단 퀵 로그인 / 회원가입 서브 헤더 바 */}
+      <div className="bg-slate-900/90 border-b border-slate-800 px-4 py-2 flex items-center justify-between text-xs">
+        <div className="flex items-center gap-1.5 text-slate-300">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+          <span className="font-semibold text-[11px]">
+            {user ? `👋 ${profile?.username || '러너'}님 (RLS 전용 로그인)` : '개인 데이터 보안 보호 중'}
+          </span>
+        </div>
+
+        {user ? (
+          <a
+            href="/profile"
+            className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 hover:bg-emerald-500/20"
+          >
+            <User className="w-3 h-3" />
+            <span>내 프로필</span>
+          </a>
+        ) : (
+          <button
+            onClick={() => setShowAuthModal(true)}
+            className="flex items-center gap-1 text-[11px] font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 px-2.5 py-0.5 rounded-full shadow transition-all"
+          >
+            <LogIn className="w-3 h-3" />
+            <span>로그인 / 회원가입</span>
+          </button>
+        )}
+      </div>
+
       {/* 날짜 헤더 */}
       <DateHeader currentDate={currentDate} onDateChange={handleDateChange} />
 
@@ -116,6 +148,9 @@ export default function HomePage() {
           )
         )}
       </div>
+
+      {/* 로그인 모달 */}
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   );
 }
