@@ -7,6 +7,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const period = searchParams.get('period') || 'weekly';
     const targetDate = searchParams.get('date') || getTodayString();
+    const userId = searchParams.get('userId') || undefined;
 
     let startDate = '';
     let endDate = '';
@@ -50,7 +51,7 @@ export async function GET(req: NextRequest) {
       periodTitle = `${year}년 연간`;
     }
 
-    const rows = await getStatsData(startDate, endDate);
+    const rows = await getStatsData(startDate, endDate, userId);
 
     return NextResponse.json({
       period,

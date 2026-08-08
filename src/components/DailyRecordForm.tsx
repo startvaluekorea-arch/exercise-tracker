@@ -31,13 +31,20 @@ export default function DailyRecordForm({
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
   useEffect(() => {
+    setWeight(initialLog?.weight ? String(initialLog.weight) : '');
+    setMemo(initialLog?.memo || '');
+    setIsPublic(initialLog?.is_public ?? false);
+
     const activeCats = categories.filter((c) => c.is_active);
     const initialMap: { [catId: string]: ExerciseRecord } = {};
 
     activeCats.forEach((cat) => {
       const existingRec = initialLog?.records?.find((r) => r.category_id === cat.id);
       if (existingRec) {
-        initialMap[cat.id] = { ...existingRec };
+        initialMap[cat.id] = {
+          ...existingRec,
+          sets_data: existingRec.sets_data ? JSON.parse(JSON.stringify(existingRec.sets_data)) : [],
+        };
       } else {
         initialMap[cat.id] = {
           category_id: cat.id,
@@ -52,10 +59,7 @@ export default function DailyRecordForm({
     });
 
     setRecordsMap(initialMap);
-    if (initialLog) {
-      setIsPublic(initialLog.is_public ?? false);
-    }
-  }, [categories, initialLog]);
+  }, [categories, initialLog, date]);
 
   const handleAddSet = (catId: string) => {
     setRecordsMap((prev) => {

@@ -14,6 +14,8 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabase';
 import { BarChart3, Scale, Dumbbell, Calendar, Loader2 } from 'lucide-react';
 
 interface StatsResponse {
@@ -25,6 +27,7 @@ interface StatsResponse {
 }
 
 export default function StatsPage() {
+  const { user, isLoading: authLoading } = useAuth();
   const [period, setPeriod] = useState<PeriodType>('weekly');
   const [targetDate, setTargetDate] = useState<string>(getTodayString());
   const [statsData, setStatsData] = useState<StatsResponse | null>(null);
@@ -33,7 +36,12 @@ export default function StatsPage() {
   const fetchStats = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/stats?period=${period}&date=${targetDate}`);
+      const { data: authData } = await supabase.auth.getUser();
+      const targetUserId = user?.id || authData?.user?.id;
+      const url = targetUserId
+        ? `/api/stats?period=${period}&date=${targetDate}&userId=${targetUserId}`
+        : `/api/stats?period=${period}&date=${targetDate}`;
+      const res = await fetch(url);
       if (res.ok) {
         const json = await res.json();
         setStatsData(json);
@@ -43,11 +51,13 @@ export default function StatsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [period, targetDate]);
+  }, [period, targetDate, user?.id]);
 
   useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
+    if (!authLoading) {
+      fetchStats();
+    }
+  }, [authLoading, fetchStats]);
 
   // 체중 변화 차트용 데이터 가공
   const weightChartData = statsData?.data
