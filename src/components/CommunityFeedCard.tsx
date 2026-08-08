@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { CommunityFeedLog, CheerComment } from '@/lib/types';
 import { formatDistanceText } from '@/lib/geoUtils';
+import { formatDuration } from '@/lib/dateUtils';
 import { toggleCheerLike, getCheerComments, addCheerComment } from '@/lib/db';
 import { useAuth } from '@/context/AuthContext';
 import { MapPin, Heart, MessageSquare, Send, Sparkles, UserCheck, Flame, ThumbsUp, Dumbbell } from 'lucide-react';
@@ -120,8 +121,13 @@ export default function CommunityFeedCard({ log, onAuthRequired }: CommunityFeed
                 <span className="text-slate-200 font-medium">{r.category_name}</span>
                 <span className="text-emerald-400 font-bold">
                   {r.unit_type === 'SET_REPS' && `${r.total_reps}회`}
-                  {r.unit_type === 'DISTANCE_TIME' && `${r.distance_km}km`}
-                  {r.unit_type === 'DURATION' && `${r.duration_seconds}초`}
+                  {r.unit_type === 'DISTANCE_TIME' && (
+                    <>
+                      {r.distance_km ? `${r.distance_km}km ` : ''}
+                      {r.duration_seconds ? `/ ${formatDuration(r.duration_seconds)}` : ''}
+                    </>
+                  )}
+                  {r.unit_type === 'DURATION' && formatDuration(r.duration_seconds)}
                 </span>
               </div>
             ))

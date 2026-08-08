@@ -362,15 +362,17 @@ export default function DailyRecordForm({
                   </div>
                   <div>
                     <label className="text-[10px] text-slate-400 font-medium block mb-1">
-                      시간 (초)
+                      시간 (분)
                     </label>
                     <input
                       type="number"
-                      placeholder="예: 1500초 (25분)"
-                      value={rec.duration_seconds || ''}
-                      onChange={(e) =>
-                        handleRecordFieldChange(cat.id, 'duration_seconds', parseInt(e.target.value) || 0)
-                      }
+                      step="0.1"
+                      placeholder="예: 25"
+                      value={rec.duration_seconds ? Number((rec.duration_seconds / 60).toFixed(1)) : ''}
+                      onChange={(e) => {
+                        const mins = parseFloat(e.target.value) || 0;
+                        handleRecordFieldChange(cat.id, 'duration_seconds', Math.round(mins * 60));
+                      }}
                       className="w-full bg-slate-900 border border-slate-700 focus:border-cyan-400 rounded-lg py-1.5 px-2 text-cyan-400 text-xs font-bold focus:outline-none"
                     />
                   </div>
