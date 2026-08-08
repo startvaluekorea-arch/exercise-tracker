@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { DailyLog, ExerciseCategory, ExerciseRecord, SetData } from '@/lib/types';
 import { Scale, Dumbbell, Plus, Trash2, FileText, CheckCircle2, Globe, Lock } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 interface DailyRecordFormProps {
   date: string;
