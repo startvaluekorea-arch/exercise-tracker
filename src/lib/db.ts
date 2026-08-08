@@ -163,6 +163,10 @@ export async function saveDailyLog(logData: {
       .select()
       .single();
 
+    if (logErr) {
+      console.error('Supabase upsert daily_logs error:', logErr);
+    }
+
     if (!logErr && logRes) {
       const logId = logRes.id;
 
@@ -178,14 +182,17 @@ export async function saveDailyLog(logData: {
           duration_seconds: r.duration_seconds || 0,
         }));
 
-        await supabase.from('exercise_records').insert(recordsToInsert);
+        const { error: recErr } = await supabase.from('exercise_records').insert(recordsToInsert);
+        if (recErr) {
+          console.error('Supabase insert exercise_records error:', recErr);
+        }
       }
 
       const updated = await getDailyLogByDate(logData.date, userId);
       if (updated) return updated;
     }
   } catch (err) {
-    console.warn('Supabase saveDailyLog error');
+    console.error('Supabase saveDailyLog exception:', err);
   }
 
   const formattedRecords: ExerciseRecord[] = logData.records.map((r, idx) => {

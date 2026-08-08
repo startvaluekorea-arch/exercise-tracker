@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { DailyLog, ExerciseCategory, ExerciseRecord, SetData } from '@/lib/types';
 import { Scale, Dumbbell, Plus, Trash2, FileText, CheckCircle2, Globe, Lock } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 interface DailyRecordFormProps {
   date: string;
@@ -19,6 +20,7 @@ export default function DailyRecordForm({
   onSaveSuccess,
   onCancel,
 }: DailyRecordFormProps) {
+  const { user } = useAuth();
   const [weight, setWeight] = useState<string>(
     initialLog?.weight ? String(initialLog.weight) : ''
   );
@@ -151,6 +153,7 @@ export default function DailyRecordForm({
         memo,
         is_public: isPublic,
         records: recordsToSave,
+        userId: user?.id,
       };
 
       const res = await fetch('/api/logs', {
