@@ -13,29 +13,18 @@ export async function getCategories(userId: string = DEFAULT_USER_ID): Promise<E
       .eq('user_id', userId)
       .order('sort_order', { ascending: true });
 
-    if (!error && data && data.length > 0) {
-      return data as ExerciseCategory[];
-    }
+    if (!error && data) {
+      // 이름(name) 기준 중복 제거
+      const uniqueCats: ExerciseCategory[] = [];
+      const seenNames = new Set<string>();
 
-    // 해당 유저의 종목이 0개인 경우 기본 5개 카테고리를 DB에 자동 생성
-    if (!error && data && data.length === 0) {
-      const defaultCats = [
-        { user_id: userId, name: '턱걸이 (Pull-up)', unit_type: 'SET_REPS', category_tag: '상체', sort_order: 1, is_active: true },
-        { user_id: userId, name: '팔굽혀펴기 (Push-up)', unit_type: 'SET_REPS', category_tag: '상체', sort_order: 2, is_active: true },
-        { user_id: userId, name: 'AB 슬라이드', unit_type: 'SET_REPS', category_tag: '코어', sort_order: 3, is_active: true },
-        { user_id: userId, name: '달리기 (Running)', unit_type: 'DISTANCE_TIME', category_tag: '유산소', sort_order: 4, is_active: true },
-        { user_id: userId, name: '플랭크 (Plank)', unit_type: 'DURATION', category_tag: '코어', sort_order: 5, is_active: true }
-      ];
-
-      const { data: insertedData } = await supabase
-        .from('exercise_categories')
-        .insert(defaultCats)
-        .select()
-        .order('sort_order', { ascending: true });
-
-      if (insertedData && insertedData.length > 0) {
-        return insertedData as ExerciseCategory[];
+      for (const cat of data as ExerciseCategory[]) {
+        if (!seenNames.has(cat.name)) {
+          seenNames.add(cat.name);
+          uniqueCats.push(cat);
+        }
       }
+      return uniqueCats;
     }
   } catch (err) {
     console.warn('Supabase categories fetch fallback');
@@ -45,8 +34,7 @@ export async function getCategories(userId: string = DEFAULT_USER_ID): Promise<E
     { id: 'cat-1', user_id: userId, name: '턱걸이 (Pull-up)', unit_type: 'SET_REPS', category_tag: '상체', sort_order: 1, is_active: true },
     { id: 'cat-2', user_id: userId, name: '팔굽혀펴기 (Push-up)', unit_type: 'SET_REPS', category_tag: '상체', sort_order: 2, is_active: true },
     { id: 'cat-3', user_id: userId, name: 'AB 슬라이드', unit_type: 'SET_REPS', category_tag: '코어', sort_order: 3, is_active: true },
-    { id: 'cat-4', user_id: userId, name: '달리기 (Running)', unit_type: 'DISTANCE_TIME', category_tag: '유산소', sort_order: 4, is_active: true },
-    { id: 'cat-5', user_id: userId, name: '플랭크 (Plank)', unit_type: 'DURATION', category_tag: '코어', sort_order: 5, is_active: true }
+    { id: 'cat-4', user_id: userId, name: '달리기 (Running)', unit_type: 'DISTANCE_TIME', category_tag: '유산소', sort_order: 4, is_active: true }
   ];
 }
 
