@@ -7,6 +7,7 @@ import DailyRecordForm from '@/components/DailyRecordForm';
 import SplashLanding from '@/components/SplashLanding';
 import AuthModal from '@/components/AuthModal';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabase';
 import { DailyLog, ExerciseCategory } from '@/lib/types';
 import { getTodayString, formatDisplayDate } from '@/lib/dateUtils';
 import { Loader2, LogIn, User, ShieldCheck, Lock } from 'lucide-react';
@@ -24,7 +25,9 @@ export default function HomePage() {
   // 운동 종목 목록 가져오기
   const fetchCategories = useCallback(async () => {
     try {
-      const url = user?.id ? `/api/categories?userId=${user.id}` : '/api/categories';
+      const { data: authData } = await supabase.auth.getUser();
+      const targetUserId = user?.id || authData?.user?.id;
+      const url = targetUserId ? `/api/categories?userId=${targetUserId}` : '/api/categories';
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
@@ -39,7 +42,9 @@ export default function HomePage() {
   const fetchDailyLog = useCallback(async (date: string) => {
     setIsLoading(true);
     try {
-      const url = user?.id ? `/api/logs?date=${date}&userId=${user.id}` : `/api/logs?date=${date}`;
+      const { data: authData } = await supabase.auth.getUser();
+      const targetUserId = user?.id || authData?.user?.id;
+      const url = targetUserId ? `/api/logs?date=${date}&userId=${targetUserId}` : `/api/logs?date=${date}`;
       const res = await fetch(url);
       if (res.ok) {
         const data: DailyLog = await res.json();

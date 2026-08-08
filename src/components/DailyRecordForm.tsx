@@ -136,13 +136,18 @@ export default function DailyRecordForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      alert('로그인이 필요한 서비스입니다. 로그인 후 기록을 저장을 시작해 주세요.');
-      return;
-    }
     setIsSaving(true);
 
     try {
+      const { data: authData } = await supabase.auth.getUser();
+      const targetUserId = user?.id || authData?.user?.id;
+
+      if (!targetUserId) {
+        alert('로그인이 필요한 서비스입니다. 로그인 후 기록을 저장해 주세요.');
+        setIsSaving(false);
+        return;
+      }
+
       const recordsToSave = Object.values(recordsMap).filter((r) => {
         if (r.sets_data && r.sets_data.length > 0) return true;
         if (r.total_reps > 0) return true;
@@ -157,7 +162,7 @@ export default function DailyRecordForm({
         memo,
         is_public: isPublic,
         records: recordsToSave,
-        userId: user?.id,
+        userId: targetUserId,
       };
 
       const res = await fetch('/api/logs', {
