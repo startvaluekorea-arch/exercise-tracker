@@ -8,7 +8,7 @@ import SplashLanding from '@/components/SplashLanding';
 import AuthModal from '@/components/AuthModal';
 import { useAuth } from '@/context/AuthContext';
 import { DailyLog, ExerciseCategory } from '@/lib/types';
-import { getTodayString } from '@/lib/dateUtils';
+import { getTodayString, formatDisplayDate } from '@/lib/dateUtils';
 import { Loader2, LogIn, User, ShieldCheck } from 'lucide-react';
 
 export default function HomePage() {
@@ -24,7 +24,8 @@ export default function HomePage() {
   // 운동 종목 목록 가져오기
   const fetchCategories = useCallback(async () => {
     try {
-      const res = await fetch('/api/categories');
+      const url = user?.id ? `/api/categories?userId=${user.id}` : '/api/categories';
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setCategories(data);
@@ -32,13 +33,14 @@ export default function HomePage() {
     } catch (err) {
       console.error('Categories fetch error:', err);
     }
-  }, []);
+  }, [user?.id]);
 
   // 선택된 날짜의 기록 가져오기
   const fetchDailyLog = useCallback(async (date: string) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/logs?date=${date}`);
+      const url = user?.id ? `/api/logs?date=${date}&userId=${user.id}` : `/api/logs?date=${date}`;
+      const res = await fetch(url);
       if (res.ok) {
         const data: DailyLog = await res.json();
         setDailyLog(data);
@@ -50,7 +52,7 @@ export default function HomePage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     fetchCategories();
@@ -120,7 +122,9 @@ export default function HomePage() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-bold text-slate-200">
-                {hasRecordData ? '오늘의 기록 수정' : '오늘의 운동 & 몸무게 기록'}
+                {hasRecordData
+                  ? `${formatDisplayDate(currentDate)} 기록 수정`
+                  : `${formatDisplayDate(currentDate)} 운동 기록`}
               </h2>
               {hasRecordData && (
                 <button
