@@ -456,7 +456,9 @@ export default function DailyRecordForm({
           ) : (
             <>
               <CheckCircle2 className="w-4 h-4" />
-              <span>오늘 기록 저장하기 ({isPublic ? '🌐 공개' : '🔒 비공개'})</span>
+              <span>
+                {initialLog && initialLog.id ? '수정 완료' : '오늘 기록 저장하기'} ({isPublic ? '🌐 공개' : '🔒 비공개'})
+              </span>
             </>
           )}
         </button>
