@@ -124,22 +124,27 @@ export async function getDailyLogByDate(dateStr: string, userId: string = DEFAUL
       return null;
     }
 
+    const userCats = await getCategories(userId);
+
     const { data: recData } = await supabase
       .from('exercise_records')
       .select('*, exercise_categories(name, unit_type)')
       .eq('log_id', logData.id);
 
-    const records: ExerciseRecord[] = (recData || []).map((r: any) => ({
-      id: r.id,
-      log_id: r.log_id,
-      category_id: r.category_id,
-      category_name: r.exercise_categories?.name || '운동',
-      unit_type: r.exercise_categories?.unit_type || 'SET_REPS',
-      sets_data: r.sets_data || [],
-      total_reps: r.total_reps || 0,
-      distance_km: Number(r.distance_km) || 0,
-      duration_seconds: r.duration_seconds || 0,
-    }));
+    const records: ExerciseRecord[] = (recData || []).map((r: any) => {
+      const matchedCat = userCats.find((c) => c.id === r.category_id);
+      return {
+        id: r.id,
+        log_id: r.log_id,
+        category_id: r.category_id,
+        category_name: r.exercise_categories?.name || matchedCat?.name || '운동 종목',
+        unit_type: r.exercise_categories?.unit_type || matchedCat?.unit_type || 'SET_REPS',
+        sets_data: r.sets_data || [],
+        total_reps: r.total_reps || 0,
+        distance_km: Number(r.distance_km) || 0,
+        duration_seconds: r.duration_seconds || 0,
+      };
+    });
 
     return {
       id: logData.id,
@@ -276,6 +281,7 @@ export async function getCommunityFeed(
     }
 
     const feedLogs: CommunityFeedLog[] = [];
+    const allCats = await getCategories();
 
     for (const log of logsData) {
       const { data: recData } = await supabase
@@ -283,17 +289,20 @@ export async function getCommunityFeed(
         .select('*, exercise_categories(name, unit_type)')
         .eq('log_id', log.id);
 
-      const records: ExerciseRecord[] = (recData || []).map((r: any) => ({
-        id: r.id,
-        log_id: r.log_id,
-        category_id: r.category_id,
-        category_name: r.exercise_categories?.name || '운동',
-        unit_type: r.exercise_categories?.unit_type || 'SET_REPS',
-        sets_data: r.sets_data || [],
-        total_reps: r.total_reps || 0,
-        distance_km: Number(r.distance_km) || 0,
-        duration_seconds: r.duration_seconds || 0,
-      }));
+      const records: ExerciseRecord[] = (recData || []).map((r: any) => {
+        const matchedCat = allCats.find((c) => c.id === r.category_id);
+        return {
+          id: r.id,
+          log_id: r.log_id,
+          category_id: r.category_id,
+          category_name: r.exercise_categories?.name || matchedCat?.name || '운동 종목',
+          unit_type: r.exercise_categories?.unit_type || matchedCat?.unit_type || 'SET_REPS',
+          sets_data: r.sets_data || [],
+          total_reps: r.total_reps || 0,
+          distance_km: Number(r.distance_km) || 0,
+          duration_seconds: r.duration_seconds || 0,
+        };
+      });
 
       // 사용자가 좋아요 눌렀는지 확인
       let userHasLiked = false;
@@ -539,17 +548,20 @@ export async function getStatsData(startDate: string, endDate: string, userId: s
       .lte('log_date', endDate)
       .order('log_date', { ascending: true });
 
+    const userCats = await getCategories(userId);
+
     if (!error && data) {
       const flattened: any[] = [];
       data.forEach((log: any) => {
         if (log.exercise_records && log.exercise_records.length > 0) {
           log.exercise_records.forEach((rec: any) => {
+            const matchedCat = userCats.find((c) => c.id === rec.category_id);
             flattened.push({
               log_date: log.log_date,
               weight: log.weight,
               category_id: rec.category_id,
-              category_name: rec.exercise_categories?.name || '운동',
-              unit_type: rec.exercise_categories?.unit_type || 'SET_REPS',
+              category_name: rec.exercise_categories?.name || matchedCat?.name || '운동 종목',
+              unit_type: rec.exercise_categories?.unit_type || matchedCat?.unit_type || 'SET_REPS',
               total_reps: rec.total_reps || 0,
               distance_km: Number(rec.distance_km) || 0,
               duration_seconds: rec.duration_seconds || 0,
