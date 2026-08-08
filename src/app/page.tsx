@@ -12,7 +12,7 @@ import { getTodayString, formatDisplayDate } from '@/lib/dateUtils';
 import { Loader2, LogIn, User, ShieldCheck, Lock } from 'lucide-react';
 
 export default function HomePage() {
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, isLoading: authLoading } = useAuth();
   const [showSplash, setShowSplash] = useState<boolean>(true);
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [currentDate, setCurrentDate] = useState<string>(getTodayString());

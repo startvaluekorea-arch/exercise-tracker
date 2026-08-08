@@ -6,7 +6,7 @@ import { Dumbbell, Plus, Eye, EyeOff, Trash2, CheckCircle, Tag, Loader2 } from '
 import { useAuth } from '@/context/AuthContext';
 
 export default function ExercisesPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [categories, setCategories] = useState<ExerciseCategory[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
