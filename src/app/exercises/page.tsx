@@ -6,7 +6,7 @@ import { Dumbbell, Plus, Eye, EyeOff, Trash2, CheckCircle, Tag, Loader2 } from '
 import { useAuth } from '@/context/AuthContext';
 
 export default function ExercisesPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [categories, setCategories] = useState<ExerciseCategory[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
@@ -33,8 +33,10 @@ export default function ExercisesPage() {
   }, [user?.id]);
 
   useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+    if (!authLoading) {
+      fetchCategories();
+    }
+  }, [authLoading, fetchCategories]);
 
   // 새 운동 종목 추가
   const handleAddCategory = async (e: React.FormEvent) => {
@@ -212,7 +214,7 @@ export default function ExercisesPage() {
       )}
 
       {/* 운동 종목 리스트 */}
-      {isLoading ? (
+      {authLoading || isLoading ? (
         <div className="flex flex-col items-center justify-center py-20 text-slate-500 gap-2">
           <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
           <span className="text-xs">운동 종목을 가져오는 중...</span>

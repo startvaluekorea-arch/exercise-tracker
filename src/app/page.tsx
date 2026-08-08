@@ -12,7 +12,7 @@ import { getTodayString, formatDisplayDate } from '@/lib/dateUtils';
 import { Loader2, LogIn, User, ShieldCheck, Lock } from 'lucide-react';
 
 export default function HomePage() {
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const [showSplash, setShowSplash] = useState<boolean>(true);
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [currentDate, setCurrentDate] = useState<string>(getTodayString());
@@ -44,7 +44,12 @@ export default function HomePage() {
       if (res.ok) {
         const data: DailyLog = await res.json();
         setDailyLog(data);
-        const hasData = (data.weight !== null && data.weight !== undefined) || (data.records && data.records.length > 0);
+        const hasData = Boolean(
+          data.id &&
+          ((data.weight !== null && data.weight !== undefined) ||
+           (data.records && data.records.length > 0) ||
+           (data.memo && data.memo.trim() !== ''))
+        );
         setIsEditing(!hasData);
       }
     } catch (err) {
@@ -55,12 +60,11 @@ export default function HomePage() {
   }, [user?.id]);
 
   useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
-
-  useEffect(() => {
-    fetchDailyLog(currentDate);
-  }, [currentDate, fetchDailyLog]);
+    if (!authLoading) {
+      fetchCategories();
+      fetchDailyLog(currentDate);
+    }
+  }, [authLoading, currentDate, fetchCategories, fetchDailyLog]);
 
   const handleDateChange = (newDate: string) => {
     setCurrentDate(newDate);
@@ -71,7 +75,13 @@ export default function HomePage() {
     setIsEditing(false);
   };
 
-  const hasRecordData = dailyLog && ((dailyLog.weight !== null && dailyLog.weight !== undefined) || (dailyLog.records && dailyLog.records.length > 0));
+  const hasRecordData = Boolean(
+    dailyLog &&
+    dailyLog.id &&
+    ((dailyLog.weight !== null && dailyLog.weight !== undefined) ||
+     (dailyLog.records && dailyLog.records.length > 0) ||
+     (dailyLog.memo && dailyLog.memo.trim() !== ''))
+  );
 
   return (
     <div className="flex flex-col min-h-screen relative">
