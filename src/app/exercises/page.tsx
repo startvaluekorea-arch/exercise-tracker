@@ -39,6 +39,10 @@ export default function ExercisesPage() {
   // 새 운동 종목 추가
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      alert('로그인이 필요한 서비스입니다. 로그인 후 종목을 추가해 주세요.');
+      return;
+    }
     if (!name.trim()) return;
     setIsSubmitting(true);
 
@@ -50,7 +54,7 @@ export default function ExercisesPage() {
           name,
           unit_type: unitType,
           category_tag: categoryTag,
-          userId: user?.id,
+          userId: user.id,
         }),
       });
 
@@ -68,6 +72,10 @@ export default function ExercisesPage() {
 
   // 활성화/숨김 상태 토글
   const handleToggleActive = async (id: string, currentActive: boolean) => {
+    if (!user) {
+      alert('로그인이 필요한 서비스입니다.');
+      return;
+    }
     try {
       const res = await fetch('/api/categories', {
         method: 'PUT',
@@ -84,6 +92,10 @@ export default function ExercisesPage() {
 
   // 종목 삭제
   const handleDeleteCategory = async (id: string, catName: string) => {
+    if (!user) {
+      alert('로그인이 필요한 서비스입니다.');
+      return;
+    }
     if (!confirm(`'${catName}' 종목을 정말 삭제하시겠습니까?`)) return;
 
     try {

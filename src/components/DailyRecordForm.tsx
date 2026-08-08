@@ -136,6 +136,10 @@ export default function DailyRecordForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      alert('로그인이 필요한 서비스입니다. 로그인 후 기록을 저장을 시작해 주세요.');
+      return;
+    }
     setIsSaving(true);
 
     try {
