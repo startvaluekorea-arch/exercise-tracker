@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCategories, createCategory, updateCategory, deleteCategory } from '@/lib/db';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const categories = await getCategories();
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get('userId') || undefined;
+    const categories = await getCategories(userId);
     return NextResponse.json(categories);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -13,7 +15,8 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const newCategory = await createCategory(body);
+    const userId = body.userId || undefined;
+    const newCategory = await createCategory(body, userId);
     return NextResponse.json(newCategory, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

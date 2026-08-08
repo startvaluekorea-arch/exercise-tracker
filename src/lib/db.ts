@@ -13,7 +13,7 @@ export async function getCategories(userId: string = DEFAULT_USER_ID): Promise<E
       .eq('user_id', userId)
       .order('sort_order', { ascending: true });
 
-    if (!error && data && data.length > 0) {
+    if (!error && data) {
       return data as ExerciseCategory[];
     }
   } catch (err) {

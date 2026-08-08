@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ExerciseCategory, UnitType } from '@/lib/types';
 import { Dumbbell, Plus, Eye, EyeOff, Trash2, CheckCircle, Tag, Loader2 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function ExercisesPage() {
+  const { user } = useAuth();
   const [categories, setCategories] = useState<ExerciseCategory[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
@@ -17,7 +19,8 @@ export default function ExercisesPage() {
   const fetchCategories = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/categories');
+      const url = user?.id ? `/api/categories?userId=${user.id}` : '/api/categories';
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setCategories(data);
@@ -27,7 +30,7 @@ export default function ExercisesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     fetchCategories();
@@ -47,6 +50,7 @@ export default function ExercisesPage() {
           name,
           unit_type: unitType,
           category_tag: categoryTag,
+          userId: user?.id,
         }),
       });
 
