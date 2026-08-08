@@ -28,7 +28,11 @@ export default function DateHeader({ currentDate, onDateChange }: DateHeaderProp
 
   const handleCalendarClick = () => {
     if (dateInputRef.current) {
-      dateInputRef.current.showPicker?.() || dateInputRef.current.click();
+      if ('showPicker' in dateInputRef.current && typeof dateInputRef.current.showPicker === 'function') {
+        dateInputRef.current.showPicker();
+      } else {
+        dateInputRef.current.click();
+      }
     }
   };
 
