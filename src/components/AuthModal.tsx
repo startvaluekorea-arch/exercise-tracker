@@ -65,7 +65,16 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       }
     } catch (err: any) {
       console.error('Auth error:', err);
-      setErrorMsg(err.message || '인증 과정에서 오류가 발생했습니다.');
+      let msg = err.message || '인증 과정에서 오류가 발생했습니다.';
+      if (
+        msg.includes('Database error saving new user') ||
+        msg.includes('already registered') ||
+        msg.includes('unique constraint') ||
+        msg.includes('User already registered')
+      ) {
+        msg = '이미 가입된 이메일 주소입니다. 하단의 [로그인] 탭을 클릭하여 로그인해 주세요.';
+      }
+      setErrorMsg(msg);
     } finally {
       setIsLoading(false);
     }
