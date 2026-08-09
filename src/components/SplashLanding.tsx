@@ -81,9 +81,19 @@ export default function SplashLanding({ onComplete }: SplashLandingProps) {
       </div>
 
       {/* 접속 당 단 1개만 고정 표시되는 이미지 & 동기부여 문구 */}
-      <div className="w-full max-w-[340px] flex-1 flex flex-col items-center justify-center my-3 space-y-4 text-center">
+      <div className="w-full max-w-[340px] flex-1 flex flex-col items-center justify-center my-2 space-y-3.5 text-center">
+        {/* 가운데 사진 위의 비어있는 공간에 배치된 메인 브랜드 타이틀 '모두의 운동' */}
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-200 to-cyan-300 drop-shadow-md">
+            모두의 운동
+          </h1>
+          <p className="text-[11px] text-slate-400 font-medium tracking-tight">
+            매일 꾸준한 일일 운동 & 체중 일지 커뮤니티
+          </p>
+        </div>
+
         {/* 고정 이미지 프레임 */}
-        <div className="relative w-full aspect-[4/3] max-h-[220px] rounded-2xl overflow-hidden shadow-2xl border border-slate-700/60">
+        <div className="relative w-full aspect-[4/3] max-h-[200px] rounded-2xl overflow-hidden shadow-2xl border border-slate-700/60">
           <Image
             src={imageSrc}
             alt="Fitness Workout Visual"
