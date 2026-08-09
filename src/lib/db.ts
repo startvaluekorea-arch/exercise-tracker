@@ -7,18 +7,31 @@ export const DEFAULT_USER_ID = process.env.NEXT_PUBLIC_DEFAULT_USER_ID || '00000
 // 1. 운동 종목 목록 가져오기
 export async function getCategories(userId: string = DEFAULT_USER_ID): Promise<ExerciseCategory[]> {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('exercise_categories')
       .select('*')
-      .eq('user_id', userId)
       .order('sort_order', { ascending: true });
 
-    if (!error && data) {
-      // 이름(name) 기준 중복 제거
+    if (userId && userId !== DEFAULT_USER_ID) {
+      query = query.in('user_id', [userId, DEFAULT_USER_ID]);
+    } else {
+      query = query.eq('user_id', DEFAULT_USER_ID);
+    }
+
+    const { data, error } = await query;
+
+    if (!error && data && data.length > 0) {
       const uniqueCats: ExerciseCategory[] = [];
       const seenNames = new Set<string>();
 
-      for (const cat of data as ExerciseCategory[]) {
+      // 유저 전용 종목을 우선 정렬
+      const sortedData = (data as ExerciseCategory[]).sort((a, b) => {
+        if (a.user_id === userId && b.user_id !== userId) return -1;
+        if (a.user_id !== userId && b.user_id === userId) return 1;
+        return (a.sort_order || 0) - (b.sort_order || 0);
+      });
+
+      for (const cat of sortedData) {
         if (!seenNames.has(cat.name)) {
           seenNames.add(cat.name);
           uniqueCats.push(cat);
@@ -27,7 +40,7 @@ export async function getCategories(userId: string = DEFAULT_USER_ID): Promise<E
       return uniqueCats;
     }
   } catch (err) {
-    console.warn('Supabase categories fetch fallback');
+    console.error('Supabase getCategories error:', err);
   }
 
   return [
@@ -61,39 +74,47 @@ export async function createCategory(
       .select()
       .single();
 
-    if (!error && data) {
+    if (error) {
+      console.error('Supabase createCategory error:', error);
+      throw error;
+    }
+
+    if (data) {
       return data as ExerciseCategory;
     }
   } catch (err) {
-    console.warn('Supabase createCategory error');
+    console.error('Supabase createCategory exception:', err);
+    throw err;
   }
 
-  return {
-    id: `cat-${Date.now()}`,
-    user_id: userId,
-    name: category.name,
-    unit_type: category.unit_type,
-    category_tag: category.category_tag || '기타',
-    sort_order: nextSort,
-    is_active: true,
-  };
+  throw new Error('운동 종목 추가에 실패했습니다.');
 }
 
 // 2-1. 운동 종목 수정
 export async function updateCategory(id: string, updates: Partial<ExerciseCategory>): Promise<void> {
   try {
-    await supabase.from('exercise_categories').update(updates).eq('id', id);
+    const { error } = await supabase.from('exercise_categories').update(updates).eq('id', id);
+    if (error) {
+      console.error('Supabase updateCategory error:', error);
+      throw error;
+    }
   } catch (err) {
-    console.warn('Supabase updateCategory error');
+    console.error('Supabase updateCategory exception:', err);
+    throw err;
   }
 }
 
 // 2-2. 운동 종목 삭제
 export async function deleteCategory(id: string): Promise<void> {
   try {
-    await supabase.from('exercise_categories').delete().eq('id', id);
+    const { error } = await supabase.from('exercise_categories').delete().eq('id', id);
+    if (error) {
+      console.error('Supabase deleteCategory error:', error);
+      throw error;
+    }
   } catch (err) {
-    console.warn('Supabase deleteCategory error');
+    console.error('Supabase deleteCategory exception:', err);
+    throw err;
   }
 }
 
