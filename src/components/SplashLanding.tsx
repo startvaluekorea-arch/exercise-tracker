@@ -61,9 +61,23 @@ export default function SplashLanding({ onComplete }: SplashLandingProps) {
         fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
-      {/* 상단 프로그레스 바 (2초 진행 표시) */}
-      <div className="w-full max-w-[340px] bg-slate-800 h-1.5 rounded-full overflow-hidden mt-2 border border-slate-700/50">
-        <div className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 h-full w-full animate-[progress_2s_linear_forwards] origin-left"></div>
+      {/* 상단 프로그레스 바 (2초 진행 표시) 및 모두의 운동 브랜드 헤더 */}
+      <div className="w-full max-w-[340px] flex flex-col items-center gap-2 mt-2">
+        <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden border border-slate-700/50">
+          <div className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 h-full w-full animate-[progress_2s_linear_forwards] origin-left"></div>
+        </div>
+
+        <div className="flex items-center gap-2 px-3 py-1 bg-slate-900/90 border border-slate-800 rounded-full shadow-lg">
+          <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-slate-950 font-black text-[10px]">
+            모
+          </div>
+          <span className="text-xs font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-200 to-cyan-400">
+            모두의 운동
+          </span>
+          <span className="text-[10px] text-slate-400 border-l border-slate-700 pl-1.5 font-medium">
+            Daily Workout & Fitness
+          </span>
+        </div>
       </div>
 
       {/* 접속 당 단 1개만 고정 표시되는 이미지 & 동기부여 문구 */}

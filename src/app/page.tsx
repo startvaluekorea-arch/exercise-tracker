@@ -95,19 +95,26 @@ export default function HomePage() {
         <SplashLanding onComplete={() => setShowSplash(false)} />
       )}
 
-      {/* 상단 퀵 로그인 / 회원가입 서브 헤더 바 */}
-      <div className="bg-slate-900/90 border-b border-slate-800 px-4 py-2 flex items-center justify-between text-xs">
-        <div className="flex items-center gap-1.5 text-slate-300">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-          <span className="font-semibold text-[11px]">
-            {user ? `👋 ${profile?.username || '러너'}님 (RLS 전용 로그인)` : '개인 데이터 보안 보호 중'}
-          </span>
+      {/* 상단 모두의 운동 브랜딩 및 퀵 로그인 / 프로필 서브 헤더 바 */}
+      <div className="bg-slate-900/95 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between text-xs backdrop-blur-md">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-slate-950 font-black text-xs shadow-md shadow-emerald-950/50">
+            모
+          </div>
+          <div className="flex flex-col">
+            <span className="font-black text-xs tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-200 to-cyan-300">
+              모두의 운동
+            </span>
+            <span className="text-[9px] text-slate-400 font-medium">
+              {user ? `👋 ${profile?.username || '러너'}님` : '매일 일일 운동 & 체중 일지'}
+            </span>
+          </div>
         </div>
 
         {user ? (
           <a
             href="/profile"
-            className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 hover:bg-emerald-500/20"
+            className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors"
           >
             <User className="w-3 h-3" />
             <span>내 프로필</span>
@@ -115,7 +122,7 @@ export default function HomePage() {
         ) : (
           <button
             onClick={() => setShowAuthModal(true)}
-            className="flex items-center gap-1 text-[11px] font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 px-2.5 py-0.5 rounded-full shadow transition-all"
+            className="flex items-center gap-1 text-[11px] font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 px-2.5 py-1 rounded-full shadow transition-all"
           >
             <LogIn className="w-3 h-3" />
             <span>로그인 / 회원가입</span>

@@ -4,8 +4,8 @@ import BottomNav from '@/components/BottomNav';
 import Providers from '@/components/Providers';
 
 export const metadata: Metadata = {
-  title: '운동 & 몸무게 기록, 이웃 피드 일지',
-  description: '일일 운동 기록, Supabase Auth 기반 RLS 보안, 공개/비공개 설정 및 거리 기반 이웃 응원 커뮤니티 모바일 웹',
+  title: '모두의 운동 | 매일 일일 운동 & 체중 일지 커뮤니티',
+  description: '모두의 운동 - 매일의 일일 운동 실적 기록, 체중 추이, 공개/비공개 설정 및 이웃 응원 피드 모바일 웹',
 };
 
 export const viewport: Viewport = {

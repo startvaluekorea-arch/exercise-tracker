@@ -109,6 +109,9 @@ export async function getDailyLogByDate(dateStr: string, userId: string = DEFAUL
       .maybeSingle();
 
     if (logError || !logData) {
+      if (logError) {
+        console.error('Supabase getDailyLogByDate logError:', logError);
+      }
       return null;
     }
 
@@ -146,7 +149,7 @@ export async function getDailyLogByDate(dateStr: string, userId: string = DEFAUL
       records,
     };
   } catch (err) {
-    console.warn('Supabase getDailyLogByDate fallback');
+    console.error('Supabase getDailyLogByDate error:', err);
     return null;
   }
 }
@@ -159,8 +162,6 @@ export async function saveDailyLog(logData: {
   is_public?: boolean;
   records: Omit<ExerciseRecord, 'id' | 'log_id'>[];
 }, userId: string = DEFAULT_USER_ID): Promise<DailyLog> {
-  const cats = await getCategories(userId);
-
   try {
     const { data: logRes, error: logErr } = await supabase
       .from('daily_logs')
@@ -179,12 +180,16 @@ export async function saveDailyLog(logData: {
 
     if (logErr) {
       console.error('Supabase upsert daily_logs error:', logErr);
+      throw logErr;
     }
 
-    if (!logErr && logRes) {
+    if (logRes) {
       const logId = logRes.id;
 
-      await supabase.from('exercise_records').delete().eq('log_id', logId);
+      const { error: delErr } = await supabase.from('exercise_records').delete().eq('log_id', logId);
+      if (delErr) {
+        console.error('Supabase delete exercise_records error:', delErr);
+      }
 
       if (logData.records.length > 0) {
         const recordsToInsert = logData.records.map((r) => ({
@@ -199,6 +204,7 @@ export async function saveDailyLog(logData: {
         const { error: recErr } = await supabase.from('exercise_records').insert(recordsToInsert);
         if (recErr) {
           console.error('Supabase insert exercise_records error:', recErr);
+          throw recErr;
         }
       }
 
@@ -207,32 +213,10 @@ export async function saveDailyLog(logData: {
     }
   } catch (err) {
     console.error('Supabase saveDailyLog exception:', err);
+    throw err;
   }
 
-  const formattedRecords: ExerciseRecord[] = logData.records.map((r, idx) => {
-    const matchedCat = cats.find((c) => c.id === r.category_id);
-    return {
-      id: `rec-${Date.now()}-${idx}`,
-      log_id: `log-${logData.date}`,
-      category_id: r.category_id,
-      category_name: matchedCat ? matchedCat.name : r.category_name || '운동',
-      unit_type: matchedCat ? matchedCat.unit_type : r.unit_type || 'SET_REPS',
-      sets_data: r.sets_data || [],
-      total_reps: r.total_reps || 0,
-      distance_km: Number(r.distance_km) || 0,
-      duration_seconds: r.duration_seconds || 0,
-    };
-  });
-
-  return {
-    id: `log-${logData.date}`,
-    user_id: userId,
-    log_date: logData.date,
-    weight: logData.weight,
-    memo: logData.memo || '',
-    is_public: logData.is_public ?? false,
-    records: formattedRecords,
-  };
+  throw new Error('일일 기록 저장에 실패했습니다.');
 }
 
 // 5. 공개/비공개 원터치 설정 변경
